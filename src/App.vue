@@ -15,7 +15,7 @@
             >
             <div class="mt-1 relative rounded-md shadow-md">
               <input
-                @input="suchTickerExists = false"
+                @input="handleInput($event.target.value)"
                 v-on:keydown.enter='add(ticker)'
                 v-model="ticker"
                 type="text"
@@ -25,20 +25,14 @@
                 placeholder="Например DOGE"
               />
             </div>
-            <!-- <div class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap">
-              <span class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer">
-                BTC
+            <div class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap">
+              <span 
+                v-for="(tiker, idx) in autocompleteList[autocompleteList.length - 1]"
+                :key='idx'
+                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer">
+                {{ tiker }}
               </span>
-              <span class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer">
-                DOGE
-              </span>
-              <span class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer">
-                BCH
-              </span>
-              <span class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer">
-                CHD
-              </span>
-            </div> -->
+            </div>
             <div v-if='suchTickerExists' class="text-sm text-red-600">Такой тикер уже добавлен</div>
           </div>
         </div>
@@ -166,6 +160,7 @@ export default {
       chart: [],
       suchTickerExists: false,
       coinList: null,
+      autocompleteList: [],
     }
   },
 
@@ -240,13 +235,32 @@ export default {
       } else {
         return false;
       }
+    },
+
+    handleInput(input) {
+      input = String(input).toUpperCase();
+      this.previewTiker(input);
+      this.suchTickerExists = false;
+    },
+
+    previewTiker(input) {
+      if (!input) {
+        return;
+      }
+      // const start = 0;
+
+      const foundList = this.coinList.filter(el => el[0].startsWith(input));
+      this.autocompleteList.push((foundList.slice(0, 4)).map(e => e[0])); // REDO ======= 
+      
+      console.log(this.autocompleteList);
     }
+
   },
 
   mounted() {
     fetch('https://min-api.cryptocompare.com/data/all/coinlist?summary=true')
     .then(res => res.json())
-    .then(data => this.coinList = data.Data);
+    .then(data => {this.coinList = Object.entries(data.Data); console.log(Object.entries(data.Data))});
     
   }
 }
