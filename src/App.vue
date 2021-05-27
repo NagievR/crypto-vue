@@ -21,13 +21,18 @@
                 type="text"
                 name="wallet"
                 id="wallet"
+                autocomplete="off"
                 class="block w-full pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
                 placeholder="Например DOGE"
               />
             </div>
-            <div class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap">
-              <span 
+            <div 
+              v-if='autocompleteList.length'
+              class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap"
+            >
+              <span
                 v-for="(tiker, idx) in autocompleteList[autocompleteList.length - 1]"
+                @click="add(tiker)"
                 :key='idx'
                 class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer">
                 {{ tiker }}
@@ -247,21 +252,34 @@ export default {
       if (!input) {
         return;
       }
-      // const start = 0;
 
-      const foundList = this.coinList.filter(el => el[0].startsWith(input));
-      this.autocompleteList.push((foundList.slice(0, 4)).map(e => e[0])); // REDO ======= 
-      
-      console.log(this.autocompleteList);
+      /// too easy 
+      // const foundList = this.coinList.filter(el => el[0].startsWith(input));
+      // this.autocompleteList.push((foundList.slice(0, 4)).map(e => e[0])); 
+
+      const foundList = [];
+
+      for (let i = 0; i < this.coinList.length; i++) {
+        const el = this.coinList[i];
+        if (foundList.length > 3) {
+          break;
+        } 
+        if (el[0].startsWith(input)) {
+          foundList.push(el[0]);
+        }
+      }
+
+      this.autocompleteList.push(foundList);
     }
 
   },
 
   mounted() {
     fetch('https://min-api.cryptocompare.com/data/all/coinlist?summary=true')
-    .then(res => res.json())
-    .then(data => {this.coinList = Object.entries(data.Data); console.log(Object.entries(data.Data))});
-    
+      .then(res => res.json())
+      .then(data => {
+        this.coinList = Object.entries(data.Data); console.log(Object.entries(data.Data));
+      });
   }
 }
 
