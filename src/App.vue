@@ -67,7 +67,7 @@
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
 
           <div
-            v-for="tiker in tikers"
+            v-for="tiker in tikersToShow"
             @click="selected = tiker"
             :key="tiker.id"
             :class="{ 'border-4 border-purple-800 border-solid': selected?.id === tiker.id }"
@@ -103,9 +103,20 @@
 
         </dl>
         <hr
-          v-if="tikers.length"
+          v-if="tikersToShow.length"
           class="w-full border-t border-gray-600 my-4"
         />
+      
+      <div>
+        <span 
+          v-for="(el, idx) in pagesQuantity" 
+          :key='idx'
+          @click="changePage(el)"
+        >
+          {{ el }}&nbsp;
+        </span>
+      </div>
+
       <section
         class="relative"
         v-if="selected"
@@ -159,8 +170,28 @@ export default {
 
   data() {
     return {
-      tikers: [], // { tiker: 'TST', price: 0.0000, id: +new Date() }
+      tikers: [
+        { tiker: 'TST', price: 1, id: 1 },
+        { tiker: 'TST', price: 2, id: 2 }, 
+        { tiker: 'TST', price: 3, id: 3 }, 
+        { tiker: 'TST', price: 4, id: 4 }, 
+        { tiker: 'TST', price: 5, id: 5 }, 
+        { tiker: 'btc', price: 6, id: 6 },  
+        { tiker: 'TST', price: 7, id: 7 }, 
+        { tiker: 'TST', price: 8, id: 8 }, 
+        { tiker: 'TST', price: 9, id: 9 }, 
+        { tiker: 'TST', price: 10, id: 10 }, 
+        { tiker: 'TST', price: 11, id: 11 }, 
+        { tiker: 'TST', price: 12, id: 12 }, 
+        { tiker: 'TST', price: 13, id: 13 }, 
+        { tiker: 'TST', price: 14, id: 14 }, 
+      ], 
       ticker: '',
+      tikersToShow: [],
+      elemsOnPage: 6,
+      currPage: 1,
+      pagesQuantity: null,
+
       selected: null,
       chart: [],
       suchTickerExists: false,
@@ -170,6 +201,21 @@ export default {
   },
 
   methods: {
+    changePage(pageNumber) {
+      this.currPage = pageNumber;
+      this.definePage();
+    },
+    definePagesQantity() {
+      this.pagesQuantity = Math.ceil(this.tikers.length / this.elemsOnPage);
+    },
+    definePage() {
+      const to = this.currPage * this.elemsOnPage;
+      const from = to - this.elemsOnPage;
+      const filtred = this.tikers.slice(from, to);
+      this.tikersToShow.length = 0;
+      this.tikersToShow.push(...filtred);
+    },
+
     add(tiker) {
       tiker = tiker.toUpperCase();
 
@@ -219,7 +265,7 @@ export default {
 
       setTimeout(() => {
         this.requestData(currTiker);
-      }, 3000);
+      }, 30000);
 
       if (this.selected?.id === currTiker.id) {
         this.addToChart(data.USD);
@@ -227,7 +273,11 @@ export default {
     },
 
     addToChart(price) {
-      // ... 
+      
+      const currSum = this.chart.reduce((curr, el) => curr += el, 0);
+      const average = currSum / this.chart.length;
+      console.log(average);
+
       this.chart.push(price);
     },
 
@@ -275,10 +325,13 @@ export default {
   },
 
   mounted() {
+    this.definePage();
+    this.definePagesQantity();
+
     fetch('https://min-api.cryptocompare.com/data/all/coinlist?summary=true')
       .then(res => res.json())
       .then(data => {
-        this.coinList = Object.entries(data.Data); console.log(Object.entries(data.Data));
+        this.coinList = Object.entries(data.Data);
       });
   }
 }
