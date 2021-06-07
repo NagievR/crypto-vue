@@ -170,22 +170,7 @@ export default {
 
   data() {
     return {
-      tikers: [
-        { tiker: 'TST', price: 1, id: 1 },
-        { tiker: 'TST', price: 2, id: 2 }, 
-        { tiker: 'TST', price: 3, id: 3 }, 
-        { tiker: 'TST', price: 4, id: 4 }, 
-        { tiker: 'TST', price: 5, id: 5 }, 
-        { tiker: 'btc', price: 6, id: 6 },  
-        { tiker: 'TST', price: 7, id: 7 }, 
-        { tiker: 'TST', price: 8, id: 8 }, 
-        { tiker: 'TST', price: 9, id: 9 }, 
-        { tiker: 'TST', price: 10, id: 10 }, 
-        { tiker: 'TST', price: 11, id: 11 }, 
-        { tiker: 'TST', price: 12, id: 12 }, 
-        { tiker: 'TST', price: 13, id: 13 }, 
-        { tiker: 'TST', price: 14, id: 14 }, 
-      ], 
+      tikers: [], 
       ticker: '',
       tikersToShow: [],
       elemsOnPage: 6,
@@ -203,17 +188,18 @@ export default {
   methods: {
     changePage(pageNumber) {
       this.currPage = pageNumber;
-      this.definePage();
+      this.initializePages();
     },
     definePagesQantity() {
       this.pagesQuantity = Math.ceil(this.tikers.length / this.elemsOnPage);
     },
-    definePage() {
+    initializePages() {
       const to = this.currPage * this.elemsOnPage;
       const from = to - this.elemsOnPage;
       const filtred = this.tikers.slice(from, to);
       this.tikersToShow.length = 0;
       this.tikersToShow.push(...filtred);
+      localStorage.setItem('tikers', JSON.stringify(this.tikers));
     },
 
     add(tiker) {
@@ -230,8 +216,11 @@ export default {
       };
 
       this.tikers.push(newTikerData);
-      this.requestData(newTikerData)
+      this.requestData(newTikerData);
       this.ticker = '';
+
+      this.initializePages();
+      this.definePagesQantity();
     },
 
     remove(id) {
@@ -241,6 +230,9 @@ export default {
         this.selected = null;
         this.chart.length = 0;
       }
+
+      this.initializePages();
+      this.definePagesQantity();
     },
 
     async requestData(tikerData) {
@@ -256,7 +248,7 @@ export default {
 
     updateTiker(tikerData, data) {
       const currTiker = this.tikers.find(el => el.id === tikerData.id);
-
+      
       if (!currTiker) {
         return
       }
@@ -273,7 +265,6 @@ export default {
     },
 
     addToChart(price) {
-      
       const currSum = this.chart.reduce((curr, el) => curr += el, 0);
       const average = currSum / this.chart.length;
       console.log(average);
@@ -324,15 +315,30 @@ export default {
 
   },
 
-  mounted() {
-    this.definePage();
-    this.definePagesQantity();
+  // watch
 
-    fetch('https://min-api.cryptocompare.com/data/all/coinlist?summary=true')
+  mounted() {
+    const storedCoinsList = JSON.parse(localStorage.getItem('coinList'));
+    if (storedCoinsList) {
+      this.coinList = storedCoinsList;
+    } else {
+      fetch('https://min-api.cryptocompare.com/data/all/coinlist?summary=true')
       .then(res => res.json())
       .then(data => {
-        this.coinList = Object.entries(data.Data);
+        const entries = Object.entries(data.Data);
+        this.coinList = entries;
+        localStorage.setItem('coinList', JSON.stringify(entries));
       });
+    }
+
+    const storedTikers = JSON.parse(localStorage.getItem('tikers'));
+    if (storedTikers) {
+      this.tikers = storedTikers;
+    }
+
+    storedTikers.forEach(tikerData => this.requestData(tikerData));
+    this.initializePages();
+    this.definePagesQantity();
   }
 }
 
