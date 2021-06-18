@@ -67,7 +67,7 @@
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
 
           <div
-            v-for="tiker in tikersToShow"
+            v-for="tiker in definePagesQantity()"
             @click="selected = tiker"
             :key="tiker.id"
             :class="{ 'border-4 border-purple-800 border-solid': selected?.id === tiker.id }"
@@ -103,19 +103,19 @@
 
         </dl>
         <hr
-          v-if="tikersToShow.length"
+          v-if="tikers.length"
           class="w-full border-t border-gray-600 my-4"
         />
       
-      <div>
+      <!-- <div>
         <span 
-          v-for="(el, idx) in pagesQuantity" 
+          v-for="(el, idx) in " 
           :key='idx'
           @click="changePage(el)"
         >
           {{ el }}&nbsp;
         </span>
-      </div>
+      </div> -->
 
       <section
         class="relative"
@@ -172,10 +172,8 @@ export default {
     return {
       tikers: [], 
       ticker: '',
-      tikersToShow: [],
       elemsOnPage: 6,
       currPage: 1,
-      pagesQuantity: null,
 
       selected: null,
       chart: [],
@@ -191,15 +189,14 @@ export default {
       this.initializePages();
     },
     definePagesQantity() {
-      this.pagesQuantity = Math.ceil(this.tikers.length / this.elemsOnPage);
-    },
-    initializePages() {
+      // const pagesQuantity = Math.ceil(this.tikers.length / this.elemsOnPage);
       const to = this.currPage * this.elemsOnPage;
       const from = to - this.elemsOnPage;
-      const filtred = this.tikers.slice(from, to);
-      this.tikersToShow.length = 0;
-      this.tikersToShow.push(...filtred);
+      return this.tikers.slice(from, to);
+    },
+    initializePages() {
       localStorage.setItem('tikers', JSON.stringify(this.tikers));
+      this.definePagesQantity();
     },
 
     add(tiker) {
@@ -220,7 +217,6 @@ export default {
       this.ticker = '';
 
       this.initializePages();
-      this.definePagesQantity();
     },
 
     remove(id) {
@@ -232,7 +228,6 @@ export default {
       }
 
       this.initializePages();
-      this.definePagesQantity();
     },
 
     async requestData(tikerData) {
@@ -338,7 +333,6 @@ export default {
 
     storedTikers.forEach(tikerData => this.requestData(tikerData));
     this.initializePages();
-    this.definePagesQantity();
   }
 }
 
