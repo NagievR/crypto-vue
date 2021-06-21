@@ -15,9 +15,6 @@
             >
             <div class="mt-1 relative rounded-md shadow-md">
               <input
-                @input="handleInput($event.target.value)"
-                v-on:keydown.enter='add(ticker)'
-                v-model="ticker"
                 type="text"
                 name="wallet"
                 id="wallet"
@@ -27,22 +24,18 @@
               />
             </div>
             <div 
-              v-if='autocompleteList.length'
               class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap"
             >
               <span
-                v-for="(tiker, idx) in autocompleteList[autocompleteList.length - 1]"
-                @click="add(tiker)"
-                :key='idx'
-                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer">
-                {{ tiker }}
+                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
+              >
+                {{ 'tiker' }}
               </span>
             </div>
-            <div v-if='suchTickerExists' class="text-sm text-red-600">Такой тикер уже добавлен</div>
+            <div class="text-sm text-red-600">Такой тикер уже добавлен</div>
           </div>
         </div>
         <button
-          @click="add(ticker)"
           type="button"
           class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
         >
@@ -67,23 +60,19 @@
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
 
           <div
-            v-for="tiker in definePagesQantity()"
-            @click="selected = tiker"
-            :key="tiker.id"
-            :class="{ 'border-4 border-purple-800 border-solid': selected?.id === tiker.id }"
+            :class="{ 'border-4 border-purple-800 border-solid': true }"
             class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
               <dt class="text-sm font-medium text-gray-500 truncate">
-                {{ tiker.tiker }} - USD
+                {{ 'lol' }} - USD
               </dt>
               <dd class="mt-1 text-3xl font-semibold text-gray-900">
-                {{ tiker.price }}
+                {{ 'lol' }}
               </dd>
             </div>
             <div class="w-full border-t border-gray-200"></div>
             <button
-              @click.stop="remove(tiker.id)"
               class="flex items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:text-gray-600 hover:bg-gray-200 hover:opacity-20 transition-all focus:outline-none"
             >
               <svg
@@ -103,7 +92,6 @@
 
         </dl>
         <hr
-          v-if="tikers.length"
           class="w-full border-t border-gray-600 my-4"
         />
       
@@ -119,22 +107,18 @@
 
       <section
         class="relative"
-        v-if="selected"
       >
         <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
-          {{ selected.tiker }} - USD
+          {{'lol'}} - USD
         </h3>
         <div class="flex items-end border-gray-600 border-b border-l h-64">
           <div
-            v-for="(bar, idx) of chart"
-            :key="idx"
             class="bg-purple-800 border w-10 h-24"
           ></div>
         </div>
         <button
           type="button"
           class="absolute top-0 right-0"
-          @click="selected = null"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -170,171 +154,27 @@ export default {
 
   data() {
     return {
-      tikers: [], 
-      ticker: '',
-      elemsOnPage: 6,
-      currPage: 1,
 
-      selected: null,
-      chart: [],
-      suchTickerExists: false,
-      coinList: null,
-      autocompleteList: [],
     }
   },
 
   methods: {
-    changePage(pageNumber) {
-      this.currPage = pageNumber;
-      this.initializePages();
-    },
-    definePagesQantity() {
-      // const pagesQuantity = Math.ceil(this.tikers.length / this.elemsOnPage);
-      const to = this.currPage * this.elemsOnPage;
-      const from = to - this.elemsOnPage;
-      return this.tikers.slice(from, to);
-    },
-    initializePages() {
-      this.definePagesQantity();
-    },
+    // async requestData(tikerData) {
+    //   const API_KEY = 'a1c61f6ad994ee54a62c29e7108038ce055fea49db1853cf44995dc35d966b98';
+    //   const res = await fetch(
+    //     `https://min-api.cryptocompare.com/data/price?fsym=${tikerData.tiker}&tsyms=USD&api_key=${API_KEY}`
+    //   );
+    // },
 
-    add(tiker) {
-      tiker = tiker.toUpperCase();
-
-      if (this.tickerExistsCheck(tiker)) {
-        return;
-      }
-
-      const newTikerData = {
-        tiker,
-        price: '-',
-        id: +new Date(),
-      };
-
-      localStorage.setItem('tikers', JSON.stringify(this.tikers));
-
-      this.tikers.push(newTikerData);
-      this.requestData(newTikerData);
-      this.ticker = '';
-
-      this.initializePages();
-    },
-
-    remove(id) {
-      this.tikers = this.tikers.filter(el => el.id !== id);
- 
-      if (this.selected?.id === id) {
-        this.selected = null;
-        this.chart.length = 0;
-      }
-
-      this.initializePages();
-    },
-
-    async requestData(tikerData) {
-      const API_KEY = 'a1c61f6ad994ee54a62c29e7108038ce055fea49db1853cf44995dc35d966b98';
-
-      const res = await fetch(
-        `https://min-api.cryptocompare.com/data/price?fsym=${tikerData.tiker}&tsyms=USD&api_key=${API_KEY}`
-      );
-
-      const resData = await res.json();
-      this.updateTiker(tikerData, resData);
-    },
-
-    updateTiker(tikerData, data) {
-      const currTiker = this.tikers.find(el => el.id === tikerData.id);
-      
-      if (!currTiker) {
-        return
-      }
-
-      currTiker.price = data.USD;
-
-      setTimeout(() => {
-        this.requestData(currTiker);
-      }, 30000);
-
-      if (this.selected?.id === currTiker.id) {
-        this.addToChart(data.USD);
-      }
-    },
-
-    addToChart(price) {
-      const currSum = this.chart.reduce((curr, el) => curr += el, 0);
-      const average = currSum / this.chart.length;
-      console.log(average);
-
-      this.chart.push(price);
-    },
-
-    tickerExistsCheck(tiker) {
-      const exists = this.tikers.filter(el => el.tiker === tiker);
-
-      if (exists.length) {
-        this.suchTickerExists = true;
-        return true;
-      } else {
-        return false;
-      }
-    },
-
-    handleInput(input) {
-      input = String(input).toUpperCase();
-      this.previewTiker(input);
-      this.suchTickerExists = false;
-    },
-
-    previewTiker(input) {
-      if (!input) {
-        return;
-      }
-
-      /// too easy 
-      // const foundList = this.coinList.filter(el => el[0].startsWith(input));
-      // this.autocompleteList.push((foundList.slice(0, 4)).map(e => e[0])); 
-
-      const foundList = [];
-
-      for (let i = 0; i < this.coinList.length; i++) {
-        const el = this.coinList[i];
-        if (foundList.length > 3) {
-          break;
-        } 
-        if (el[0].startsWith(input)) {
-          foundList.push(el[0]);
-        }
-      }
-
-      this.autocompleteList.push(foundList);
-    }
 
   },
 
   // watch
 
   mounted() {
-    const storedCoinsList = JSON.parse(localStorage.getItem('coinList'));
-    if (storedCoinsList) {
-      this.coinList = storedCoinsList;
-    } else {
-      fetch('https://min-api.cryptocompare.com/data/all/coinlist?summary=true')
-      .then(res => res.json())
-      .then(data => {
-        const entries = Object.entries(data.Data);
-        this.coinList = entries;
-        localStorage.setItem('coinList', JSON.stringify(entries));
-      });
-    }
 
-    const storedTikers = JSON.parse(localStorage.getItem('tikers'));
-    if (storedTikers) {
-      this.tikers = storedTikers;
-      storedTikers.forEach(tikerData => this.requestData(tikerData));
-    }
-
-    this.initializePages();
   }
+
 }
 
 </script>
