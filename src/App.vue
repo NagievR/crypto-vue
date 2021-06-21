@@ -195,7 +195,6 @@ export default {
       return this.tikers.slice(from, to);
     },
     initializePages() {
-      localStorage.setItem('tikers', JSON.stringify(this.tikers));
       this.definePagesQantity();
     },
 
@@ -211,6 +210,8 @@ export default {
         price: '-',
         id: +new Date(),
       };
+
+      localStorage.setItem('tikers', JSON.stringify(this.tikers));
 
       this.tikers.push(newTikerData);
       this.requestData(newTikerData);
@@ -329,9 +330,9 @@ export default {
     const storedTikers = JSON.parse(localStorage.getItem('tikers'));
     if (storedTikers) {
       this.tikers = storedTikers;
+      storedTikers.forEach(tikerData => this.requestData(tikerData));
     }
 
-    storedTikers.forEach(tikerData => this.requestData(tikerData));
     this.initializePages();
   }
 }
