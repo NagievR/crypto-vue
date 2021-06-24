@@ -22,7 +22,7 @@
                 class="block w-full pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
                 placeholder="Например DOGE"
                 v-model="tickerName"
-                @input="errors.nameExists = false"
+                @input="handleInput()"
                 @keydown.enter="addTicker()"
               />
             </div>
@@ -32,7 +32,7 @@
               <span
                 class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
               >
-                {{ 'tiker' }}
+                {{ item }}
               </span>
             </div>
             <div class="text-sm text-red-600" v-if="errors.nameExists">Такой тикер уже добавлен</div>
@@ -169,26 +169,52 @@ export default {
       tickerName: '',
       tickerList: [],
       coinList: null,
+      // autocomplete: null,
       errors: {
         nameExists: false
       },
     }
   },
 
+  computed: {
+    // autocomplete() {
+    //   // console.log(this.tickerName);
+    //   // console.log(this.CoinList[this.tickerName]);
+    //   return this.tickerName
+    // }
+
+  },
+
   methods: {
+    handleInput() {
+      this.errors.nameExists = false;
+      const name = this.tickerName.toUpperCase();
+      console.log(name);
+      console.log(this.coinList[name]);
+    },
+
     requestData(tickerName) {
       const API_KEY = 'a1c61f6ad994ee54a62c29e7108038ce055fea49db1853cf44995dc35d966b98';
 
       const fetchPrice = async () => {
-        // ====================== process error ==================
-        const res = await fetch(
-          `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=${API_KEY}`
-        );
-        const data = await res.json();
+        try {
+          const res = await fetch(
+            `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=${API_KEY}`
+          );
 
-        const foundTicker = this.tickerList.find(obj => obj.name === tickerName);
-        if (foundTicker) {
-          foundTicker.price = data.USD;
+          if (res.status > 399) {
+            throw Error(res);
+          }
+
+          const data = await res.json();
+
+          const foundTicker = this.tickerList.find(obj => obj.name === tickerName);
+          if (foundTicker) {
+            foundTicker.price = data.USD;
+          }
+        } catch (error) {
+          alert('try later');
+          console.log(error);
         }
       };
 
@@ -246,12 +272,15 @@ export default {
 
     const storedCoins = localStorage.getItem('coinList');
     if (storedCoins) {
-      const parced = storedCoins.JSON.parse(storedCoins);
+      const parced = JSON.parse(storedCoins);
       this.coinList = parced;
     } else {
       fetch('https://min-api.cryptocompare.com/data/all/coinlist?summary=true')
         .then(res => res.json())
-        .then(list => this.coinList = list)
+        .then(list => {
+          this.coinList = list.Data;
+          localStorage.setItem('coinList', JSON.stringify(list.Data));
+        })
         .catch(err => {
           alert('try later');
           console.log(err);
