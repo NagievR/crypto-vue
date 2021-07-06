@@ -27,10 +27,14 @@
               />
             </div>
             <div 
+              v-if='autocompleted.length'
               class="flex bg-white shadow-md p-1 rounded-md shadow-md flex-wrap"
             >
               <span
                 class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
+                v-for="item in autocompleted" 
+                :key="item"
+                @click="addTicker(item)"
               >
                 {{ item }}
               </span>
@@ -121,7 +125,7 @@
         :key="item.id"
       >
         <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
-          {{ 'sds' }} - USD
+          {{ item.name }} - USD
         </h3>
         <div class="flex items-end border-gray-600 border-b border-l h-64">
           <div
@@ -169,7 +173,6 @@ export default {
       tickerName: '',
       tickerList: [],
       coinList: null,
-      // autocomplete: null,
       errors: {
         nameExists: false
       },
@@ -177,20 +180,33 @@ export default {
   },
 
   computed: {
-    // autocomplete() {
-    //   // console.log(this.tickerName);
-    //   // console.log(this.CoinList[this.tickerName]);
-    //   return this.tickerName
-    // }
+    autocompleted() {
+      if (this.tickerName.length < 1) {
+        return [];
+      }
+
+      const AUTOCOMPLETE_LENGTH = 4;
+      const foundList = [];
+
+      for (let i = 0; i < this.coinList.length && foundList.length < AUTOCOMPLETE_LENGTH; i++) {
+        const currEl = this.coinList[i];
+        const tickerName = this.tickerName.toUpperCase();
+        if (currEl.startsWith(tickerName)) {
+          foundList.push(currEl);
+        }
+      }
+
+      return foundList;
+    }
 
   },
 
   methods: {
     handleInput() {
       this.errors.nameExists = false;
-      const name = this.tickerName.toUpperCase();
-      console.log(name);
-      console.log(this.coinList[name]);
+      // const name = this.tickerName.toUpperCase();
+      // console.log(name);
+      // console.log(this.coinList[name]);
     },
 
     requestData(tickerName) {
@@ -225,7 +241,9 @@ export default {
       // fetchPrice();
     },
 
-    addTicker() {
+    addTicker(ticker = null) {
+      this.tickerName = ticker;
+
       if (!this.tickerName) {
         alert('error');
         return;
@@ -262,6 +280,13 @@ export default {
 
   },
 
+  // watch: {
+  //   tickerName(val) {
+  //     // to uppercase?
+  //     // this.tickerName.val
+  //   }
+  // },
+
   created() {
     const storedTickers = localStorage.getItem('tickerList');
     if (storedTickers) {
@@ -279,7 +304,8 @@ export default {
         .then(res => res.json())
         .then(list => {
           this.coinList = list.Data;
-          localStorage.setItem('coinList', JSON.stringify(list.Data));
+          const nameListSorted = Object.keys(list.Data).sort((a, b) => a.length - b.length);
+          localStorage.setItem('coinList', JSON.stringify(nameListSorted));
         })
         .catch(err => {
           alert('try later');
