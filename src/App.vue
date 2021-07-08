@@ -72,9 +72,10 @@
 
           <div
             class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
-            :class="{ 'border-4 border-purple-800 border-solid': false }"
+            :class="{ 'border-4 border-purple-800 border-solid': selectedCard.id === item.id }"
             v-for="item of tickerList"
             :key="item.id"
+            @click="selectCard(item)"
           >
             <div class="px-4 py-5 sm:p-6 text-center">
               <dt class="text-sm font-medium text-gray-500 truncate">
@@ -119,22 +120,27 @@
         </span>
       </div> -->
 
+<!--         v-for="item of tickerList"
+        :key="item.id" -->
+
       <section
+        v-if='selectedCard'
         class="relative"
-        v-for="item of tickerList"
-        :key="item.id"
       >
         <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
-          {{ item.name }} - USD
+          {{ selectedCard.name }} - USD
         </h3>
         <div class="flex items-end border-gray-600 border-b border-l h-64">
           <div
+            v-for="(item) of 70"
+            :key='item'
             class="bg-purple-800 border w-10 h-24"
           ></div>
         </div>
         <button
           type="button"
           class="absolute top-0 right-0"
+          @click="selectedCard = null"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -173,6 +179,7 @@ export default {
       tickerName: '',
       tickerList: [],
       coinList: null,
+      selectedCard: null,
       errors: {
         nameExists: false
       },
@@ -197,7 +204,7 @@ export default {
       }
 
       return foundList;
-    }
+    },
 
   },
 
@@ -207,6 +214,10 @@ export default {
       // const name = this.tickerName.toUpperCase();
       // console.log(name);
       // console.log(this.coinList[name]);
+    },
+
+    selectCard(cardPbj) {
+      this.selectedCard = this.selectedCard === cardPbj ? null : cardPbj;
     },
 
     requestData(tickerName) {
